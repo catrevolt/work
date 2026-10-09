@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Калькулятор сувенирной продукции</title>
+  <style>
+    :root {
+      --bg: #f5f6f8;
+      --card: #ffffff;
+      --text: #16181d;
+      --muted: #6c7280;
+      --line: #e4e7ec;
+      --accent: #111827;
+      --good: #0f8a4b;
+      --warn: #b66a00;
+      --danger: #b42318;
+      --soft: #f1f3f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 5vw, 44px);
+      letter-spacing: -0.04em;
+    }
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 15px;
+    }
+    .badge {
+      white-space: nowrap;
+      background: #111827;
+      color: #fff;
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 18px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(16,24,40,.04);
+    }
+    .card h2 {
+      margin: 0 0 16px;
+      font-size: 18px;
+    }
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .field.full { grid-column: 1 / -1; }
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px 13px;
+      font-size: 16px;
+      outline: none;
+      transition: .2s ease;
+    }
+    input:focus, select:focus {
+      border-color: #98a2b3;
+      box-shadow: 0 0 0 3px rgba(152,162,179,.12);
+    }
+    input[readonly] {
+      background: var(--soft);
+      color: #475467;
+      font-weight: 700;
+    }
+    .hint {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 48px;
+      padding: 11px 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      user-select: none;
+    }
+    .check-row input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      margin: 0;
+      accent-color: #111827;
+      flex: 0 0 auto;
+    }
+    .check-row strong {
+      display: block;
+      font-size: 15px;
+    }
+    .check-row span {
+      display: block;
+      margin-top: 2px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .auto-note {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 11px 13px;
+      border-radius: 12px;
+      background: #f7f8fa;
+      border: 1px solid var(--line);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .auto-note strong {
+      color: var(--text);
+      font-size: 14px;
+    }
+    .results {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .metric {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      background: #fff;
+    }
+    .metric.big {
+      grid-column: 1 / -1;
+      background: #111827;
+      color: #fff;
+      border-color: #111827;
+      padding: 18px;
+    }
+    .metric .name {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .metric.big .name { color: #c7cbd3; }
+    .metric .value {
+      font-size: 21px;
+      font-weight: 750;
+      letter-spacing: -.02em;
+    }
+    .metric.big .value { font-size: 32px; }
+    details {
+      margin-top: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+    summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 13px;
+      user-select: none;
+    }
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .detail-row {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f7f8fa;
+    }
+    .detail-row span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+    .detail-row strong {
+      font-size: 15px;
+    }
+    .status {
+      margin-top: 14px;
+      padding: 13px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      background: #eef8f2;
+      color: var(--good);
+      border: 1px solid #cbead8;
+    }
+    .status.warn {
+      background: #fff7ed;
+      color: var(--warn);
+      border-color: #fed7aa;
+    }
+    .status.danger {
+      background: #fef3f2;
+      color: var(--danger);
+      border-color: #fecdca;
+    }
+    .customer-summary {
+      margin-top: 18px;
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+    .customer-summary h3 {
+      margin: 0 0 12px;
+      font-size: 15px;
+    }
+    .customer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .customer-item {
+      padding: 11px 12px;
+      border-radius: 12px;
+      background: #f7f8fa;
+      border: 1px solid var(--line);
+    }
+    .customer-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 4px;
+    }
+    .customer-item strong {
+      font-size: 16px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .primary { background: #111827; color: #fff; }
+    .secondary { background: #eef0f3; color: #111827; }
+    .fixed-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .fixed {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fafafa;
+    }
+    .fixed span {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .fixed strong { font-size: 18px; }
+    @media (max-width: 820px) {
+      .grid { grid-template-columns: 1fr; }
+      .header { align-items: flex-start; flex-direction: column; }
+    }
+    @media (max-width: 520px) {
+      .wrap { padding: 14px; }
+      .fields, .results, .fixed-box { grid-template-columns: 1fr; }
+      .field.full, .metric.big { grid-column: auto; }
+      .metric.big .value { font-size: 30px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="header">
+      <div>
+        <h1>Калькулятор заказа</h1>
+        <div class="subtitle">Версия 13 · ручной коэффициент и производственные операции</div>
+      </div>
+      <div class="badge">СУВЕНИРКА</div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Параметры расчёта</h2>
+
+        <div class="hint" style="margin:0 0 14px 0;">
+          Базовая себестоимость: Пластик — <strong>5 ₽/г</strong> · Смола — <strong>7,5 ₽/г</strong>
+        </div>
+
+        <div class="fields">
+          <div class="field full">
+            <label for="material">Материал</label>
+            <select id="material">
+              <option value="5">Пластик</option>
+              <option value="7.5">Смола</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="materialCost">Себестоимость материала, ₽ / г</label>
+            <input id="materialCost" type="text" readonly value="5,00" />
+            <div class="hint">Меняется автоматически при выборе материала</div>
+          </div>
+
+          <div class="field full" id="colorChangeField">
+            <label>Дополнительная операция для пластика</label>
+            <label class="check-row" for="colorChange">
+              <input id="colorChange" type="checkbox" />
+              <div>
+                <strong>Смена цвета +40%</strong>
+                <span>К цене клиента +40%, к себестоимости заказа +25%</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="weight">Вес одного изделия, г</label>
+            <input id="weight" type="number" min="0" step="0.1" value="25" />
+          </div>
+
+          <div class="field">
+            <label for="qty">Тираж, шт.</label>
+            <input id="qty" type="number" min="1" step="1" value="100" />
+          </div>
+
+          <div class="field">
+            <label for="sellPrice">Цена продажи за 1 г, ₽</label>
+            <input id="sellPrice" type="number" min="0" step="0.01" value="10" />
+            <div class="hint">Цена одного изделия = цена за 1 г × вес изделия</div>
+          </div>
+
+          <div class="field">
+            <label>Налогообложение</label>
+            <label class="check-row" for="vatEnabled">
+              <input id="vatEnabled" type="checkbox" />
+              <div>
+                <strong>НДС 22%</strong>
+                <span>Добавить НДС к цене для клиента</span>
+              </div>
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="extraUnit">Доп. себестоимость на 1 шт., ₽</label>
+            <input id="extraUnit" type="number" min="0" step="0.01" value="0" />
+            <div class="hint">Фурнитура, печать, упаковка и т. п.</div>
+          </div>
+
+          <div class="field">
+            <label for="extraOrder">Доп. расходы на весь заказ, ₽</label>
+            <input id="extraOrder" type="number" min="0" step="0.01" value="0" />
+            <div class="hint">Доставка, подготовка, разовая работа и т. п.</div>
+          </div>
+
+
+          <div class="auto-note">
+            <span>Скидка за объём рассчитывается автоматически по общему весу заказа</span>
+            <strong id="volumeDiscountInfo">0 кг · скидка 0%</strong>
+          </div>
+
+          <div class="field">
+            <label for="customCoeff">Коэффициент</label>
+            <input id="customCoeff" type="number" min="0" step="0.01" placeholder="1,32" />
+            <div class="hint">Если поле пустое — используется фиксированный коэффициент 1,32</div>
+          </div>
+
+          <div class="field">
+            <label for="targetMargin">Целевая маржинальность, %</label>
+            <input id="targetMargin" type="number" min="0" max="99.9" step="0.1" value="40" />
+            <div class="hint">Контрольный показатель, коэффициент от него больше не зависит</div>
+          </div>
+
+          <div class="field">
+            <label for="modeling">Моделирование, ₽ / заказ</label>
+            <input id="modeling" type="number" min="0" step="0.01" value="0" />
+          </div>
+
+          <div class="field">
+            <label for="assembly">Сборка, ₽ / заказ</label>
+            <input id="assembly" type="number" min="0" step="0.01" value="0" />
+          </div>
+
+          <div class="field">
+            <label for="sanding">Шлифовка, ₽ / заказ</label>
+            <input id="sanding" type="number" min="0" step="0.01" value="0" />
+          </div>
+
+          <div class="field">
+            <label for="painting">Покраска, ₽ / заказ</label>
+            <input id="painting" type="number" min="0" step="0.01" value="0" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary" id="copyBtn">Скопировать расчёт</button>
+          <button class="secondary" id="resetBtn">Сбросить</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Результат</h2>
+
+        <div class="results">
+          <div class="metric big">
+            <div class="name">Цена клиенту за 1 г</div>
+            <div class="value" id="clientGramPrice">0 ₽/г</div>
+          </div>
+
+          <div class="metric">
+            <div class="name">Цена за 1 шт.</div>
+            <div class="value" id="clientUnitPrice">0 ₽</div>
+          </div>
+
+          <div class="metric">
+            <div class="name">Себестоимость заказа</div>
+            <div class="value" id="totalCost">0 ₽</div>
+          </div>
+
+          <div class="metric">
+            <div class="name">Маржинальность</div>
+            <div class="value" id="margin">0%</div>
+          </div>
+
+          <div class="metric">
+            <div class="name">К оплате клиенту</div>
+            <div class="value" id="clientTotal">0 ₽</div>
+          </div>
+        </div>
+
+        <details>
+          <summary>Детали расчёта</summary>
+          <div class="details-grid">
+            <div class="detail-row">
+              <span>Себестоимость 1 шт.</span>
+              <strong id="unitCost">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Выручка без НДС</span>
+              <strong id="revenue">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Маржа заказа</span>
+              <strong id="profit">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>НДС в заказе</span>
+              <strong id="vatAmount">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Базовая цена 1 шт. без НДС</span>
+              <strong id="unitSellPrice">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Общий вес материала</span>
+              <strong id="totalMaterialWeight">0 кг</strong>
+            </div>
+            <div class="detail-row">
+              <span>Скидка за объём</span>
+              <strong id="volumeDiscount">0%</strong>
+            </div>
+            <div class="detail-row">
+              <span>Цена 1 г после скидки, без НДС</span>
+              <strong id="discountedGramPrice">0 ₽/г</strong>
+            </div>
+            <div class="detail-row">
+              <span>Доп. себестоимость на 1 шт.</span>
+              <strong id="extraUnitResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Коэффициент для доп. расходов</span>
+              <strong id="marginFactorResult">×1</strong>
+            </div>
+            <div class="detail-row">
+              <span>Доп. себестоимость в цене клиенту</span>
+              <strong id="extraUnitClientResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Доп. расходы на 1 шт. (себестоимость)</span>
+              <strong id="extraOrderPerUnitResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Доп. расходы на 1 шт. в цене клиенту</span>
+              <strong id="extraOrderClientResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Моделирование, себестоимость</span>
+              <strong id="modelingCostResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Сборка, себестоимость</span>
+              <strong id="assemblyCostResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Шлифовка, себестоимость</span>
+              <strong id="sandingCostResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Покраска, себестоимость</span>
+              <strong id="paintingCostResult">0 ₽</strong>
+            </div>
+            <div class="detail-row">
+              <span>Наценка к себестоимости</span>
+              <strong id="markup">0%</strong>
+            </div>
+            <div class="detail-row">
+              <span>Цена за 1 г для целевой маржи</span>
+              <strong id="targetPrice">0 ₽/г</strong>
+            </div>
+          </div>
+        </details>
+
+        <div class="status" id="status">Маржинальность соответствует цели.</div>
+
+        <div class="customer-summary">
+          <h3>Для заказчика</h3>
+          <div class="customer-grid">
+            <div class="customer-item">
+              <span>Стоимость тиража</span>
+              <strong id="customerBatchPrice">0 ₽</strong>
+            </div>
+            <div class="customer-item">
+              <span>Цена за 1 шт.</span>
+              <strong id="customerUnitPrice">0 ₽</strong>
+            </div>
+            <div class="customer-item">
+              <span>Вес 1 шт.</span>
+              <strong id="customerUnitWeight">0 г</strong>
+            </div>
+            <div class="customer-item">
+              <span>Скидка за объём</span>
+              <strong id="customerVolumeDiscount">0%</strong>
+            </div>
+            <div class="customer-item">
+              <span>Моделирование</span>
+              <strong id="customerModeling">0 ₽</strong>
+            </div>
+            <div class="customer-item">
+              <span>НДС 22%</span>
+              <strong id="customerVat">Нет</strong>
+            </div>
+            <div class="customer-item">
+              <span>Смена цвета</span>
+              <strong id="customerColorChange">Нет</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script>
+  const $ = id => document.getElementById(id);
+  const inputs = ['material','weight','qty','sellPrice','vatEnabled','colorChange','extraUnit','extraOrder','customCoeff','targetMargin','modeling','assembly','sanding','painting'].map($);
+
+  const fmt = (n) => new Intl.NumberFormat('ru-RU', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(Number.isFinite(n) ? n : 0);
+
+  function num(id) {
+    const v = parseFloat($(id).value);
+    return Number.isFinite(v) ? v : 0;
+  }
+
+  function calc() {
+    const material = num('material');
+    const weight = Math.max(0, num('weight'));
+    const qty = Math.max(0, num('qty'));
+    const sell = Math.max(0, num('sellPrice'));
+    const extraUnit = Math.max(0, num('extraUnit'));
+    const extraOrder = Math.max(0, num('extraOrder'));
+    const targetMargin = Math.min(99.9, Math.max(0, num('targetMargin')));
+
+    const customCoeffRaw = parseFloat($('customCoeff').value);
+    const marginFactor = Number.isFinite(customCoeffRaw) && customCoeffRaw > 0
+      ? customCoeffRaw
+      : 1.32;
+
+    const modeling = Math.max(0, num('modeling'));
+    const assembly = Math.max(0, num('assembly'));
+    const sanding = Math.max(0, num('sanding'));
+    const painting = Math.max(0, num('painting'));
+    const operationsTotal = modeling + assembly + sanding + painting;
+
+    const isPlastic = $('material').value === '5';
+    const colorChangeEnabled = isPlastic && $('colorChange').checked;
+    const colorCostMultiplier = colorChangeEnabled ? 1.25 : 1;
+
+    $('materialCost').value = fmt(material);
+    $('colorChangeField').style.display = isPlastic ? '' : 'none';
+    if (!isPlastic) $('colorChange').checked = false;
+
+    const materialPerUnit = weight * material;
+    const unitCostBeforeOrder = materialPerUnit + extraUnit;
+
+    // Разовые операции входят в себестоимость заказа по фактическому значению.
+    const baseTotalCost = unitCostBeforeOrder * qty + extraOrder + operationsTotal;
+
+    // Смена цвета: +25% к итоговой себестоимости заказа.
+    const totalCost = baseTotalCost * colorCostMultiplier;
+    const realUnitCost = qty > 0 ? totalCost / qty : 0;
+
+    // Разовые расходы и операции распределяем на тираж.
+    const extraOrderPerUnit = qty > 0 ? extraOrder / qty : 0;
+    const modelingPerUnit = qty > 0 ? modeling / qty : 0;
+    const assemblyPerUnit = qty > 0 ? assembly / qty : 0;
+    const sandingPerUnit = qty > 0 ? sanding / qty : 0;
+    const paintingPerUnit = qty > 0 ? painting / qty : 0;
+    const vatEnabled = $('vatEnabled').checked;
+    const vatRate = 0.22;
+
+    // Общий вес заказа определяет автоматическую скидку за объём.
+    const totalWeightKg = (weight * qty) / 1000;
+
+    let discountRate = 0;
+    if (totalWeightKg >= 30) {
+      discountRate = 0.15;
+    } else if (totalWeightKg >= 14) {
+      discountRate = 0.12;
+    } else if (totalWeightKg >= 7) {
+      discountRate = 0.08;
+    } else if (totalWeightKg >= 4) {
+      discountRate = 0.05;
+    } else if (totalWeightKg >= 1) {
+      discountRate = 0.03;
+    }
+
+    // При смене цвета продажная цена весовой части увеличивается на 40%.
+    // Затем применяется скидка за объём.
+    const colorPriceMultiplier = colorChangeEnabled ? 1.40 : 1;
+    const sellPriceAfterColor = sell * colorPriceMultiplier;
+    const discountedSellPrice = sellPriceAfterColor * (1 - discountRate);
+
+    // Дополнительные расходы продаём с выбранным коэффициентом:
+    // ручной коэффициент, если введён; иначе фиксированный 1,32.
+    const extraUnitClientPrice = extraUnit * marginFactor;
+    const extraOrderClientPerUnit = extraOrderPerUnit * marginFactor;
+    const modelingClientPerUnit = modelingPerUnit * marginFactor;
+    const assemblyClientPerUnit = assemblyPerUnit * marginFactor;
+    const sandingClientPerUnit = sandingPerUnit * marginFactor;
+    const paintingClientPerUnit = paintingPerUnit * marginFactor;
+
+    // Итоговая цена 1 шт. без НДС:
+    // цена по весу + все дополнительные расходы с выбранным коэффициентом.
+    const productPricePerUnit = discountedSellPrice * weight;
+    const unitSellPrice =
+      productPricePerUnit +
+      extraUnitClientPrice +
+      extraOrderClientPerUnit +
+      modelingClientPerUnit +
+      assemblyClientPerUnit +
+      sandingClientPerUnit +
+      paintingClientPerUnit;
+
+    const revenue = unitSellPrice * qty;
+
+    // НДС начисляется на полную итоговую цену 1 шт.
+    const clientUnitPrice = vatEnabled ? unitSellPrice * (1 + vatRate) : unitSellPrice;
+    const clientTotal = clientUnitPrice * qty;
+    const vatAmount = vatEnabled ? revenue * vatRate : 0;
+
+    // Цена за 1 г — весовая часть после смены цвета и объёмной скидки.
+    const clientGramPrice = vatEnabled ? discountedSellPrice * (1 + vatRate) : discountedSellPrice;
+
+    const profit = revenue - totalCost;
+    const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+    const markup = totalCost > 0 ? (profit / totalCost) * 100 : 0;
+
+    const targetUnitSellPrice = targetMargin < 100
+      ? realUnitCost / (1 - targetMargin / 100)
+      : 0;
+
+    // Для целевой цены за 1 г вычитаем фиксированные клиентские доплаты.
+    const targetWeightPartPerUnit = Math.max(
+      0,
+      targetUnitSellPrice
+      - extraUnitClientPrice
+      - extraOrderClientPerUnit
+      - modelingClientPerUnit
+      - assemblyClientPerUnit
+      - sandingClientPerUnit
+      - paintingClientPerUnit
+    );
+    const targetClientPriceBeforeVat = weight > 0
+      ? targetWeightPartPerUnit / weight
+      : 0;
+
+    const targetPrice = vatEnabled
+      ? targetClientPriceBeforeVat * (1 + vatRate)
+      : targetClientPriceBeforeVat;
+
+    $('unitCost').textContent = fmt(realUnitCost) + ' ₽';
+    $('totalCost').textContent = fmt(totalCost) + ' ₽';
+    $('unitSellPrice').textContent = fmt(unitSellPrice) + ' ₽';
+    $('clientGramPrice').textContent = fmt(clientGramPrice) + ' ₽/г';
+    $('clientUnitPrice').textContent = fmt(clientUnitPrice) + ' ₽';
+    $('totalMaterialWeight').textContent = fmt(totalWeightKg) + ' кг';
+    $('volumeDiscount').textContent = fmt(discountRate * 100) + '%';
+    $('discountedGramPrice').textContent = fmt(discountedSellPrice) + ' ₽/г';
+    $('extraUnitResult').textContent = fmt(extraUnit) + ' ₽';
+    $('marginFactorResult').textContent = '×' + fmt(marginFactor);
+    $('extraUnitClientResult').textContent = fmt(extraUnitClientPrice) + ' ₽';
+    $('extraOrderPerUnitResult').textContent = fmt(extraOrderPerUnit) + ' ₽';
+    $('extraOrderClientResult').textContent = fmt(extraOrderClientPerUnit) + ' ₽';
+    $('modelingCostResult').textContent = fmt(modeling) + ' ₽';
+    $('assemblyCostResult').textContent = fmt(assembly) + ' ₽';
+    $('sandingCostResult').textContent = fmt(sanding) + ' ₽';
+    $('paintingCostResult').textContent = fmt(painting) + ' ₽';
+    $('volumeDiscountInfo').textContent = fmt(totalWeightKg) + ' кг · скидка ' + fmt(discountRate * 100) + '%';
+    $('revenue').textContent = fmt(revenue) + ' ₽';
+    $('vatAmount').textContent = fmt(vatAmount) + ' ₽';
+    $('clientTotal').textContent = fmt(clientTotal) + ' ₽';
+
+    $('customerBatchPrice').textContent = fmt(clientTotal) + ' ₽';
+    $('customerUnitPrice').textContent = fmt(clientUnitPrice) + ' ₽';
+    $('customerUnitWeight').textContent = fmt(weight) + ' г';
+    $('customerVolumeDiscount').textContent =
+      fmt(discountRate * 100) + '% · ' + fmt(totalWeightKg) + ' кг за тираж';
+    const modelingClientTotal = modeling * marginFactor * (vatEnabled ? (1 + vatRate) : 1);
+    $('customerModeling').textContent = fmt(modelingClientTotal) + ' ₽';
+    $('customerVat').textContent = vatEnabled ? 'Да, 22%' : 'Нет';
+    $('customerColorChange').textContent = colorChangeEnabled ? 'Да' : 'Нет';
+
+    $('profit').textContent = fmt(profit) + ' ₽';
+    $('margin').textContent = fmt(margin) + '%';
+    $('markup').textContent = fmt(markup) + '%';
+    $('targetPrice').textContent = fmt(targetPrice) + ' ₽/г';
+
+    const status = $('status');
+    status.className = 'status';
+
+    if (revenue <= 0) {
+      status.textContent = 'Укажите цену продажи, чтобы увидеть маржинальность.';
+      status.classList.add('warn');
+    } else if (profit < 0) {
+      status.textContent = 'Заказ убыточный: цена продажи ниже себестоимости.';
+      status.classList.add('danger');
+    } else if (margin + 0.0001 < targetMargin) {
+      status.textContent = `Маржинальность ${fmt(margin)}% ниже цели ${fmt(targetMargin)}%.`;
+      status.classList.add('warn');
+    } else {
+      status.textContent = `Маржинальность ${fmt(margin)}% соответствует цели ${fmt(targetMargin)}%.`;
+    }
+
+    return {
+      materialName: $('material').selectedOptions[0].text,
+      material, weight, qty, sell, unitSellPrice, vatEnabled, colorChangeEnabled,
+      totalWeightKg, discountRate, discountedSellPrice, extraOrderPerUnit,
+      marginFactor, extraUnitClientPrice, extraOrderClientPerUnit,
+      modeling, assembly, sanding, painting,
+      modelingClientPerUnit, assemblyClientPerUnit, sandingClientPerUnit, paintingClientPerUnit,
+      clientGramPrice, clientUnitPrice, vatAmount, clientTotal, extraUnit, extraOrder,
+      targetMargin, realUnitCost, totalCost, revenue, profit, margin, markup, targetPrice
+    };
+  }
+
+  inputs.forEach(el => el.addEventListener('input', calc));
+  inputs.forEach(el => el.addEventListener('change', calc));
+
+  $('resetBtn').addEventListener('click', () => {
+    $('material').value = '5';
+    $('weight').value = '25';
+    $('qty').value = '100';
+    $('sellPrice').value = '10';
+    $('vatEnabled').checked = false;
+    $('colorChange').checked = false;
+    $('extraUnit').value = '0';
+    $('extraOrder').value = '0';
+    $('customCoeff').value = '';
+    $('targetMargin').value = '40';
+    $('modeling').value = '0';
+    $('assembly').value = '0';
+    $('sanding').value = '0';
+    $('painting').value = '0';
+    calc();
+  });
+
+  $('copyBtn').addEventListener('click', async () => {
+    const r = calc();
+    const text = [
+      'Расчёт заказа',
+      `Материал: ${r.materialName}`,
+      `Себестоимость материала: ${fmt(r.material)} ₽/г`,
+      `Вес 1 шт.: ${fmt(r.weight)} г`,
+      `Тираж: ${fmt(r.qty)} шт.`,
+      `Базовая цена продажи: ${fmt(r.sell)} ₽/г`,
+      `Цена продажи 1 шт. без НДС: ${fmt(r.unitSellPrice)} ₽`,
+      `НДС 22%: ${r.vatEnabled ? 'Да' : 'Нет'}`,
+      `Смена цвета +40%: ${r.colorChangeEnabled ? 'Да' : 'Нет'}`,
+      `Базовая цена: ${fmt(r.sell)} ₽/г`,
+      `Цена после смены цвета: ${fmt(r.colorChangeEnabled ? r.sell * 1.4 : r.sell)} ₽/г`,
+      `Общий вес: ${fmt(r.totalWeightKg)} кг`,
+      `Скидка за объём: ${fmt(r.discountRate * 100)}%`,
+      `Цена после скидки без НДС: ${fmt(r.discountedSellPrice)} ₽/г`,
+      `Коэффициент: ×${fmt(r.marginFactor)}`,
+      `Доп. себестоимость на 1 шт.: ${fmt(r.extraUnit)} ₽`,
+      `В цену клиенту по доп. себестоимости: ${fmt(r.extraUnitClientPrice)} ₽/шт.`,
+      `Доп. расходы на 1 шт. (себестоимость): ${fmt(r.extraOrderPerUnit)} ₽`,
+      `Доп. расходы на 1 шт. в цене клиенту: ${fmt(r.extraOrderClientPerUnit)} ₽`,
+      `Моделирование: ${fmt(r.modeling)} ₽`,
+      `Сборка: ${fmt(r.assembly)} ₽`,
+      `Шлифовка: ${fmt(r.sanding)} ₽`,
+      `Покраска: ${fmt(r.painting)} ₽`,
+      `Цена клиенту: ${fmt(r.clientGramPrice)} ₽/г`,
+      `Цена клиенту за 1 шт.: ${fmt(r.clientUnitPrice)} ₽`,
+      `Себестоимость 1 шт.: ${fmt(r.realUnitCost)} ₽`,
+      `Себестоимость заказа: ${fmt(r.totalCost)} ₽`,
+      `Выручка без НДС: ${fmt(r.revenue)} ₽`,
+      `НДС: ${fmt(r.vatAmount)} ₽`,
+      `К оплате клиенту: ${fmt(r.clientTotal)} ₽`,
+      `Маржа: ${fmt(r.profit)} ₽`,
+      `Маржинальность: ${fmt(r.margin)}%`,
+      `Цена за 1 г для цели ${fmt(r.targetMargin)}%: ${fmt(r.targetPrice)} ₽/г`
+    ].join('\n');
+
+    try {
+      await navigator.clipboard.writeText(text);
+      $('copyBtn').textContent = 'Скопировано';
+      setTimeout(() => $('copyBtn').textContent = 'Скопировать расчёт', 1200);
+    } catch {
+      alert(text);
+    }
+  });
+
+  calc();
+</script>
+</body>
+</html>
